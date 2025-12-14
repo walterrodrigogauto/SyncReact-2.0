@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -22,15 +22,8 @@
     </section>
 
     <section class="videos">
-      <iframe
-  id="playerA"
-  width="560"
-  height="315"
-  src=""
-  frameborder="0"
-  allow="autoplay; encrypted-media"
-  allowfullscreen>
-</iframe>
+      <!-- 👇 CONTENEDOR PARA YOUTUBE API (NO iframe) -->
+      <div id="playerA"></div>
 
       <video id="playerB" autoplay muted></video>
       <button id="startCam">Activar cámara</button>
@@ -41,35 +34,28 @@
     </section>
   </main>
 
-  <!-- ✅ SCRIPT AL FINAL -->
+  <!-- 🎥 CÁMARA -->
   <script>
-    console.log('JS cargado');
-
     const startBtn = document.getElementById('startCam');
     const camVideo = document.getElementById('playerB');
 
     startBtn.addEventListener('click', async () => {
-      console.log('Click detectado');
-
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true
         });
-
         camVideo.srcObject = stream;
         camVideo.play();
-
-        console.log('Permisos otorgados');
       } catch (err) {
-        console.error(err);
         alert('Permisos de cámara o micrófono denegados');
+        console.error(err);
       }
     });
   </script>
-<script src="https://www.youtube.com/iframe_api"></script>
+
+  <!-- ✅ ORDEN CORRECTO -->
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script src="src/sync.js"></script>
 </body>
 </html>
-
-
