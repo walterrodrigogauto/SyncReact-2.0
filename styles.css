@@ -1,0 +1,26 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #111;
+  color: #fff;
+}
+
+header {
+  padding: 1rem;
+  background: #e50914;
+  text-align: center;
+}
+
+main {
+  padding: 1rem;
+}
+
+.videos {
+  display: flex;
+  gap: 1rem;
+}
+
+#playerA, #playerB {
+  width: 50%;
+  background: #000;
+}
