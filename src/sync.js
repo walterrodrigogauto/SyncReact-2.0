@@ -1,33 +1,46 @@
-let playerA;
-let camStream;
-let mediaRecorder;
+let playerA = null;
+let camStream = null;
+let mediaRecorder = null;
 let recordedChunks = [];
 
-// YOUTUBE API
-function onYouTubeIframeAPIReady() {
+/* =========================
+   YOUTUBE IFRAME API
+========================= */
+window.onYouTubeIframeAPIReady = function () {
   playerA = new YT.Player('playerA', {
     height: '315',
     width: '560',
-    videoId: '',
     playerVars: {
       controls: 1,
-      rel: 0
+      rel: 0,
+      modestbranding: 1
     },
     events: {
       onStateChange: onPlayerStateChange
     }
   });
-}
+};
 
-// EXTRAER ID DEL VIDEO
+/* =========================
+   EXTRAER ID DE YOUTUBE
+========================= */
 function extractVideoId(url) {
-  const match = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+  const match = url.match(
+    /(?:youtube\.com\/.*v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  );
   return match ? match[1] : null;
 }
 
-// CARGAR VIDEO
+/* =========================
+   CARGAR VIDEO
+========================= */
 document.getElementById('loadVideo').addEventListener('click', () => {
-  const url = document.getElementById('videoA').value;
+  if (!playerA) {
+    alert('El reproductor de YouTube aún no está listo');
+    return;
+  }
+
+  const url = document.getElementById('videoA').value.trim();
   const videoId = extractVideoId(url);
 
   if (!videoId) {
@@ -38,13 +51,21 @@ document.getElementById('loadVideo').addEventListener('click', () => {
   playerA.loadVideoById(videoId);
 });
 
-// SINCRONIZACIÓN BASE
+/* =========================
+   SINCRONIZACIÓN BASE
+========================= */
 function onPlayerStateChange(event) {
-  if (event.data === YT.PlayerState.PLAYING) {
-    console.log('YouTube PLAY');
-  }
+  switch (event.data) {
+    case YT.PlayerState.PLAYING:
+      console.log('YouTube PLAY');
+      break;
 
-  if (event.data === YT.PlayerState.PAUSED) {
-    console.log('YouTube PAUSE');
+    case YT.PlayerState.PAUSED:
+      console.log('YouTube PAUSE');
+      break;
+
+    case YT.PlayerState.ENDED:
+      console.log('YouTube END');
+      break;
   }
 }
