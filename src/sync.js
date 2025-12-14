@@ -1,7 +1,5 @@
 let playerA = null;
-let camStream = null;
-let mediaRecorder = null;
-let recordedChunks = [];
+let playerReady = false;
 
 /* =========================
    YOUTUBE IFRAME API
@@ -16,10 +14,16 @@ window.onYouTubeIframeAPIReady = function () {
       modestbranding: 1
     },
     events: {
+      onReady: onPlayerReady,
       onStateChange: onPlayerStateChange
     }
   });
 };
+
+function onPlayerReady() {
+  playerReady = true;
+  console.log('YouTube Player READY');
+}
 
 /* =========================
    EXTRAER ID DE YOUTUBE
@@ -35,7 +39,7 @@ function extractVideoId(url) {
    CARGAR VIDEO
 ========================= */
 document.getElementById('loadVideo').addEventListener('click', () => {
-  if (!playerA) {
+  if (!playerReady) {
     alert('El reproductor de YouTube aún no está listo');
     return;
   }
