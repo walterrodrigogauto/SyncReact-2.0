@@ -1,8 +1,12 @@
 let playerA = null;
 let playerReady = false;
 
+let camStream = null;
+let mediaRecorder = null;
+let recordedChunks = [];
+
 /* =========================
-   YOUTUBE IFRAME API
+   YOUTUBE API
 ========================= */
 window.onYouTubeIframeAPIReady = function () {
   playerA = new YT.Player('playerA', {
@@ -10,23 +14,20 @@ window.onYouTubeIframeAPIReady = function () {
     width: '560',
     playerVars: {
       controls: 1,
-      rel: 0,
-      modestbranding: 1
+      rel: 0
     },
     events: {
-      onReady: onPlayerReady,
+      onReady: () => {
+        playerReady = true;
+        console.log('YouTube READY');
+      },
       onStateChange: onPlayerStateChange
     }
   });
 };
 
-function onPlayerReady() {
-  playerReady = true;
-  console.log('YouTube Player READY');
-}
-
 /* =========================
-   EXTRAER ID DE YOUTUBE
+   EXTRAER ID
 ========================= */
 function extractVideoId(url) {
   const match = url.match(
@@ -39,37 +40,73 @@ function extractVideoId(url) {
    CARGAR VIDEO
 ========================= */
 document.getElementById('loadVideo').addEventListener('click', () => {
-  if (!playerReady) {
-    alert('El reproductor de YouTube aún no está listo');
-    return;
-  }
+  if (!playerReady) return alert('YouTube no listo');
 
-  const url = document.getElementById('videoA').value.trim();
-  const videoId = extractVideoId(url);
+  const url = document.getElementById('videoA').value;
+  const id = extractVideoId(url);
+  if (!id) return alert('URL inválida');
 
-  if (!videoId) {
-    alert('URL de YouTube inválida');
-    return;
-  }
-
-  playerA.loadVideoById(videoId);
+  playerA.loadVideoById(id);
 });
 
 /* =========================
-   SINCRONIZACIÓN BASE
+   CÁMARA
+========================= */
+document.getElementById('startCam').addEventListener('click', async () => {
+  camStream = await navigator.mediaDevices.getUserMedia({
+    video: true,
+    audio: true
+  });
+
+  const camVideo = document.getElementById('playerB');
+  camVideo.srcObject = camStream;
+  camVideo.play();
+
+  mediaRecorder = new MediaRecorder(camStream);
+  mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
+  mediaRecorder.onstop = saveRecording;
+});
+
+/* =========================
+   SINCRONIZACIÓN
 ========================= */
 function onPlayerStateChange(event) {
-  switch (event.data) {
-    case YT.PlayerState.PLAYING:
-      console.log('YouTube PLAY');
-      break;
+  const status = document.getElementById('recordStatus');
 
-    case YT.PlayerState.PAUSED:
-      console.log('YouTube PAUSE');
-      break;
+  if (!mediaRecorder) return;
 
-    case YT.PlayerState.ENDED:
-      console.log('YouTube END');
-      break;
+  if (event.data === YT.PlayerState.PLAYING) {
+    if (mediaRecorder.state !== 'recording') {
+      recordedChunks = [];
+      mediaRecorder.start();
+      status.textContent = '🔴 Grabando';
+    }
   }
+
+  if (event.data === YT.PlayerState.PAUSED) {
+    if (mediaRecorder.state === 'recording') {
+      mediaRecorder.pause();
+      status.textContent = '⏸ Pausado';
+    }
+  }
+
+  if (event.data === YT.PlayerState.ENDED) {
+    if (mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+      status.textContent = '✅ Grabación finalizada';
+    }
+  }
+}
+
+/* =========================
+   GUARDAR VIDEO
+========================= */
+function saveRecording() {
+  const blob = new Blob(recordedChunks, { type: 'video/webm' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'reaction.webm';
+  a.click();
 }
