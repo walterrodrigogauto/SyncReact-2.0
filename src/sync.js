@@ -46,7 +46,7 @@ document.getElementById('loadVideo').addEventListener('click', () => {
   const id = extractVideoId(url);
   if (!id) return alert('URL inválida');
 
-  playerA.loadVideoById(id);
+  playerA.cueVideoById(id);
 });
 
 /* =========================
@@ -110,3 +110,4 @@ function saveRecording() {
   a.download = 'reaction.webm';
   a.click();
 }
+
