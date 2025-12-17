@@ -64,7 +64,6 @@ document.getElementById('startCam').addEventListener('click', async () => {
 
   mediaRecorder = new MediaRecorder(camStream);
   mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
-  mediaRecorder.onstop = saveRecording;
 });
 
 /* =========================
@@ -97,7 +96,7 @@ function onPlayerStateChange(event) {
 /* =========================
    GUARDAR VIDEO
 ========================= */
-function saveRecording() {
+/*function saveRecording() {
   const blob = new Blob(recordedChunks, { type: 'video/webm' });
   const url = URL.createObjectURL(blob);
 
@@ -106,5 +105,6 @@ function saveRecording() {
   a.download = 'reaction.webm';
   a.click();
 }
+*/
 
 
