@@ -106,5 +106,27 @@ function onPlayerStateChange(event) {
   a.click();
 }
 */
+/* =========================
+   DESCARGA MANUAL
+========================= */
+document
+  .getElementById('downloadReaction')
+  .addEventListener('click', () => {
+    if (!recordedChunks.length) {
+      alert('No hay grabación para descargar');
+      return;
+    }
+
+    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'reaction.webm';
+    a.click();
+
+    URL.revokeObjectURL(url);
+  });
+
 
 
