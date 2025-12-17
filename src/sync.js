@@ -71,32 +71,28 @@ document.getElementById('startCam').addEventListener('click', async () => {
    SINCRONIZACIÓN
 ========================= */
 function onPlayerStateChange(event) {
-  const status = document.getElementById('recordStatus');
-
   if (!mediaRecorder) return;
 
   if (event.data === YT.PlayerState.PLAYING) {
     if (mediaRecorder.state !== 'recording') {
       recordedChunks = [];
       mediaRecorder.start();
-      status.textContent = '🔴 Grabando';
+      console.log('🎬 YouTube PLAY → grabación continúa');
     }
   }
 
   if (event.data === YT.PlayerState.PAUSED) {
-    if (mediaRecorder.state === 'recording') {
-      mediaRecorder.pause();
-      status.textContent = '⏸ Pausado';
-    }
+    console.log('⏸ YouTube PAUSE → grabación continúa');
   }
 
   if (event.data === YT.PlayerState.ENDED) {
     if (mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
-      status.textContent = '✅ Grabación finalizada';
+      console.log('⏹ YouTube END → grabación detenida');
     }
   }
 }
+
 
 /* =========================
    GUARDAR VIDEO
@@ -110,4 +106,5 @@ function saveRecording() {
   a.download = 'reaction.webm';
   a.click();
 }
+
 
