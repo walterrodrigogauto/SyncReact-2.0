@@ -64,6 +64,8 @@ document.getElementById('startCam').addEventListener('click', async () => {
 
   mediaRecorder = new MediaRecorder(camStream);
   mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
+   document.getElementById('recordStatus').textContent =
+  '🔴 Cámara activa / grabando';
 });
 
 /* =========================
@@ -127,6 +129,7 @@ document
 
     URL.revokeObjectURL(url);
   });
+
 
 
 
