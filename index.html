@@ -25,7 +25,13 @@
       <!-- 👇 CONTENEDOR PARA YOUTUBE API (NO iframe) -->
       <div id="playerA"></div>
 
-      <video id="playerB" autoplay muted></video>
+      <video
+  id="playerB"
+  autoplay
+  muted
+  playsinline
+  style="background:#000;"
+></video>
       <button id="startCam">Activar cámara</button>
       <button id="downloadReaction">Descargar reacción</button>
       <p id="recordStatus">🎥 Esperando</p>
@@ -61,5 +67,6 @@
   <script src="src/sync.js"></script>
 </body>
 </html>
+
 
 
