@@ -101,7 +101,6 @@ function onPlayerStateChange(event) {
 }
 
     }
-  }
 }
 
 
@@ -169,6 +168,7 @@ recordStatus.textContent = '🔴 Grabando reacción';
 
 // Al finalizar
 recordStatus.textContent = '✅ Reacción lista para descargar';
+
 
 
 
