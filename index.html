@@ -43,31 +43,12 @@
     </section>
   </main>
 
-  <!-- 🎥 CÁMARA -->
-  <script>
-    const startBtn = document.getElementById('startCam');
-    const camVideo = document.getElementById('playerB');
-
-    startBtn.addEventListener('click', async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true
-        });
-        camVideo.srcObject = stream;
-        camVideo.play();
-      } catch (err) {
-        alert('Permisos de cámara o micrófono denegados');
-        console.error(err);
-      }
-    });
-  </script>
-
   <!-- ✅ ORDEN CORRECTO -->
   <script src="https://www.youtube.com/iframe_api"></script>
   <script src="src/sync.js"></script>
 </body>
 </html>
+
 
 
 
