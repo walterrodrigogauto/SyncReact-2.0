@@ -62,11 +62,12 @@ document.getElementById('startCam').addEventListener('click', async () => {
   camVideo.srcObject = camStream;
   camVideo.play();
 
-  mediaRecorder = new MediaRecorder(camStream);
-  mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
-   document.getElementById('recordStatus').textContent =
-  '🔴 Cámara activa / grabando';
+  document.getElementById('recordStatus').textContent =
+    '🎥 Cámara activa (preview)';
+
+  document.getElementById('startReaction').disabled = false;
 });
+
 
 /* =========================
    SINCRONIZACIÓN
@@ -129,6 +130,26 @@ document
 
     URL.revokeObjectURL(url);
   });
+/* =========================
+   INICIAR REACCIÓN
+========================= */
+document.getElementById('startReaction').addEventListener('click', () => {
+  if (!camStream || !playerA) {
+    alert('Cámara o YouTube no listos');
+    return;
+  }
+
+  recordedChunks = [];
+  mediaRecorder = new MediaRecorder(camStream);
+  mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
+  mediaRecorder.start();
+
+  document.getElementById('recordStatus').textContent =
+    '🔴 Grabando reacción';
+
+  playerA.playVideo();
+});
+
 
 
 
