@@ -88,9 +88,18 @@ function onPlayerStateChange(event) {
   }
 
   if (event.data === YT.PlayerState.ENDED) {
-    if (mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop();
-      console.log('⏹ YouTube END → grabación detenida');
+  if (mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+
+    document.getElementById('recordStatus').textContent =
+      '✅ Reacción finalizada';
+
+    const downloadBtn = document.getElementById('downloadReaction');
+    downloadBtn.disabled = false;
+    downloadBtn.style.opacity = '1';
+  }
+}
+
     }
   }
 }
@@ -149,6 +158,7 @@ document.getElementById('startReaction').addEventListener('click', () => {
 
   playerA.playVideo();
 });
+
 
 
 
