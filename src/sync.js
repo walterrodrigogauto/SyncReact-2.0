@@ -158,6 +158,18 @@ document.getElementById('startReaction').addEventListener('click', () => {
 
   playerA.playVideo();
 });
+// Al cargar la página
+recordStatus.textContent = '';
+
+// Al activar cámara (preview)
+recordStatus.textContent = '🎥 Cámara lista (ajustá luz y encuadre)';
+
+// Al iniciar reacción
+recordStatus.textContent = '🔴 Grabando reacción';
+
+// Al finalizar
+recordStatus.textContent = '✅ Reacción lista para descargar';
+
 
 
 
