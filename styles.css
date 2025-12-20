@@ -24,4 +24,9 @@ main {
   width: 50%;
   background: #000;
 }
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 
