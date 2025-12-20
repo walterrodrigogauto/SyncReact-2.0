@@ -101,8 +101,6 @@ function onPlayerStateChange(event) {
 }
 
     }
-}
-
 
 /* =========================
    GUARDAR VIDEO
@@ -168,6 +166,7 @@ recordStatus.textContent = '🔴 Grabando reacción';
 
 // Al finalizar
 recordStatus.textContent = '✅ Reacción lista para descargar';
+
 
 
 
