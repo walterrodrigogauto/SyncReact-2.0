@@ -40,17 +40,24 @@ function extractVideoId(url) {
    CARGAR VIDEO
 ========================= */
 document.getElementById('loadVideo').addEventListener('click', () => {
-  if (!playerReady) return alert('YouTube no listo');
+  if (!playerReady) {
+    alert('YouTube no listo');
+    return;
+  }
 
   const url = document.getElementById('videoA').value;
   const id = extractVideoId(url);
-  if (!id) return alert('URL inválida');
 
-  playerA.cueVideoById(id);
+  if (!id) {
+    alert('URL inválida');
+    return;
+  }
+
+  playerA.cueVideoById(id); // 👈 NO autoplay
 });
 
 /* =========================
-   CÁMARA
+   ACTIVAR CÁMARA (NO graba)
 ========================= */
 document.getElementById('startCam').addEventListener('click', async () => {
   camStream = await navigator.mediaDevices.getUserMedia({
@@ -62,116 +69,57 @@ document.getElementById('startCam').addEventListener('click', async () => {
   camVideo.srcObject = camStream;
   camVideo.play();
 
-  document.getElementById('recordStatus').textContent =
-    '🎥 Cámara activa (preview)';
+  document.getElementById('recordStatus').textContent = '📷 Cámara lista';
+
+  mediaRecorder = new MediaRecorder(camStream);
+  mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
+  mediaRecorder.onstop = saveRecording;
 
   document.getElementById('startReaction').disabled = false;
 });
 
-
-/* =========================
-   SINCRONIZACIÓN
-========================= */
-function onPlayerStateChange(event) {
-  if (!mediaRecorder) return;
-
-  if (event.data === YT.PlayerState.PLAYING) {
-    if (mediaRecorder.state !== 'recording') {
-      recordedChunks = [];
-      mediaRecorder.start();
-      console.log('🎬 YouTube PLAY → grabación continúa');
-    }
-  }
-
-  if (event.data === YT.PlayerState.PAUSED) {
-    console.log('⏸ YouTube PAUSE → grabación continúa');
-  }
-
-  if (event.data === YT.PlayerState.ENDED) {
-  if (mediaRecorder.state !== 'inactive') {
-    mediaRecorder.stop();
-
-    document.getElementById('recordStatus').textContent =
-      '✅ Reacción finalizada';
-
-    const downloadBtn = document.getElementById('downloadReaction');
-    downloadBtn.disabled = false;
-    downloadBtn.style.opacity = '1';
-  }
-}
-
-    }
-
-/* =========================
-   GUARDAR VIDEO
-========================= */
-/*function saveRecording() {
-  const blob = new Blob(recordedChunks, { type: 'video/webm' });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'reaction.webm';
-  a.click();
-}
-*/
-/* =========================
-   DESCARGA MANUAL
-========================= */
-document
-  .getElementById('downloadReaction')
-  .addEventListener('click', () => {
-    if (!recordedChunks.length) {
-      alert('No hay grabación para descargar');
-      return;
-    }
-
-    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'reaction.webm';
-    a.click();
-
-    URL.revokeObjectURL(url);
-  });
 /* =========================
    INICIAR REACCIÓN
 ========================= */
 document.getElementById('startReaction').addEventListener('click', () => {
-  if (!camStream || !playerA) {
-    alert('Cámara o YouTube no listos');
-    return;
-  }
+  if (!playerA || !mediaRecorder) return;
 
   recordedChunks = [];
-  mediaRecorder = new MediaRecorder(camStream);
-  mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
   mediaRecorder.start();
-
-  document.getElementById('recordStatus').textContent =
-    '🔴 Grabando reacción';
-
   playerA.playVideo();
+
+  document.getElementById('recordStatus').textContent = '🔴 Grabando';
 });
-// Al cargar la página
-recordStatus.textContent = '';
 
-// Al activar cámara (preview)
-recordStatus.textContent = '🎥 Cámara lista (ajustá luz y encuadre)';
+/* =========================
+   ESTADO YOUTUBE
+========================= */
+function onPlayerStateChange(event) {
+  if (!mediaRecorder) return;
 
-// Al iniciar reacción
-recordStatus.textContent = '🔴 Grabando reacción';
+  if (event.data === YT.PlayerState.ENDED) {
+    if (mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+      document.getElementById('recordStatus').textContent =
+        '✅ Grabación finalizada';
 
-// Al finalizar
-recordStatus.textContent = '✅ Reacción lista para descargar';
+      document.getElementById('downloadReaction').disabled = false;
+    }
+  }
+}
 
+/* =========================
+   GUARDAR VIDEO
+========================= */
+function saveRecording() {
+  const blob = new Blob(recordedChunks, { type: 'video/webm' });
+  const url = URL.createObjectURL(blob);
 
-
-
-
-
-
-
-
+  const btn = document.getElementById('downloadReaction');
+  btn.onclick = () => {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'reaction.webm';
+    a.click();
+  };
+}
