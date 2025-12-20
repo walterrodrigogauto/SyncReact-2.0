@@ -28,5 +28,12 @@ button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
+#recordStatus {
+  min-height: 24px;
+  margin-top: 10px;
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
 
 
