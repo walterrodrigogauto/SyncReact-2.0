@@ -141,4 +141,20 @@ function saveRecording() {
     a.click();
   };
 }
+function onPlayerStateChange(event) {
+  if (!reactionStartTime) return;
+
+  if (event.data === YT.PlayerState.PLAYING) {
+    logEvent('play');
+  }
+
+  if (event.data === YT.PlayerState.PAUSED) {
+    logEvent('pause');
+  }
+
+  if (event.data === YT.PlayerState.ENDED) {
+    logEvent('ended');
+  }
+}
+
 
