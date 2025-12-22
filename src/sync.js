@@ -14,13 +14,14 @@ let reactionStartTime = null;
 function logEvent(type) {
   if (!playerA || !reactionStartTime) return;
 
-  syncEvents.push({
+  const event = {
     type,
     videoTime: playerA.getCurrentTime(),
     reactionTime: Date.now() - reactionStartTime
-  });
+  };
 
-  console.log('Evento:', type, syncEvents[syncEvents.length - 1]);
+  syncEvents.push(event);
+  console.log('Evento:', event);
 }
 
 /* =========================
@@ -156,5 +157,6 @@ function onPlayerStateChange(event) {
     logEvent('ended');
   }
 }
+
 
 
