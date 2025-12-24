@@ -46,7 +46,7 @@ window.onYouTubeIframeAPIReady = function () {
 };
 
 /* =========================
-   EXTRAER ID
+   EXTRAER ID DE YOUTUBE
 ========================= */
 function extractVideoId(url) {
   const match = url.match(
@@ -56,27 +56,21 @@ function extractVideoId(url) {
 }
 
 /* =========================
-   CARGAR VIDEO
+   CARGAR VIDEO (NO AUTOPLAY)
 ========================= */
 document.getElementById('loadVideo').addEventListener('click', () => {
-  if (!playerReady) {
-    alert('YouTube no listo');
-    return;
-  }
+  if (!playerReady) return alert('YouTube no listo');
 
   const url = document.getElementById('videoA').value;
   const id = extractVideoId(url);
 
-  if (!id) {
-    alert('URL inválida');
-    return;
-  }
+  if (!id) return alert('URL inválida');
 
-  playerA.cueVideoById(id); // 👈 NO autoplay
+  playerA.cueVideoById(id);
 });
 
 /* =========================
-   ACTIVAR CÁMARA (NO graba)
+   ACTIVAR CÁMARA (NO GRABA)
 ========================= */
 document.getElementById('startCam').addEventListener('click', async () => {
   camStream = await navigator.mediaDevices.getUserMedia({
@@ -103,7 +97,10 @@ document.getElementById('startCam').addEventListener('click', async () => {
 document.getElementById('startReaction').addEventListener('click', () => {
   if (!playerA || !mediaRecorder) return;
 
+  reactionStartTime = Date.now();
+  syncEvents = [];
   recordedChunks = [];
+
   mediaRecorder.start();
   playerA.playVideo();
 
@@ -111,37 +108,8 @@ document.getElementById('startReaction').addEventListener('click', () => {
 });
 
 /* =========================
-   ESTADO YOUTUBE
+   ESTADOS DE YOUTUBE
 ========================= */
-function onPlayerStateChange(event) {
-  if (!mediaRecorder) return;
-
-  if (event.data === YT.PlayerState.ENDED) {
-    if (mediaRecorder.state === 'recording') {
-      mediaRecorder.stop();
-      document.getElementById('recordStatus').textContent =
-        '✅ Grabación finalizada';
-
-      document.getElementById('downloadReaction').disabled = false;
-    }
-  }
-}
-
-/* =========================
-   GUARDAR VIDEO
-========================= */
-function saveRecording() {
-  const blob = new Blob(recordedChunks, { type: 'video/webm' });
-  const url = URL.createObjectURL(blob);
-
-  const btn = document.getElementById('downloadReaction');
-  btn.onclick = () => {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'reaction.webm';
-    a.click();
-  };
-}
 function onPlayerStateChange(event) {
   if (!reactionStartTime) return;
 
@@ -155,8 +123,31 @@ function onPlayerStateChange(event) {
 
   if (event.data === YT.PlayerState.ENDED) {
     logEvent('ended');
+
+    if (mediaRecorder?.state === 'recording') {
+      mediaRecorder.stop();
+    }
+
+    document.getElementById('recordStatus').textContent =
+      '✅ Grabación finalizada';
+    document.getElementById('downloadReaction').disabled = false;
+
+    console.table(syncEvents);
   }
 }
 
+/* =========================
+   GUARDAR VIDEO (MANUAL)
+========================= */
+function saveRecording() {
+  const blob = new Blob(recordedChunks, { type: 'video/webm' });
+  const url = URL.createObjectURL(blob);
 
-
+  const btn = document.getElementById('downloadReaction');
+  btn.onclick = () => {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'reaction.webm';
+    a.click();
+  };
+}
