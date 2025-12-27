@@ -78,28 +78,19 @@ document.getElementById('startCam').addEventListener('click', async () => {
     audio: true
   });
 
- const camBtn = document.getElementById('startCam');
-const camVideo = document.getElementById('playerB');
+  const camVideo = document.getElementById('playerB');
+  camVideo.srcObject = camStream;
+  camVideo.play();
 
-camBtn.addEventListener('click', async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: true
-    });
+  document.getElementById('recordStatus').textContent = '📷 Cámara lista';
 
-    camVideo.srcObject = stream;
-    camVideo.play();
+  mediaRecorder = new MediaRecorder(camStream);
+  mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
+  mediaRecorder.onstop = saveRecording;
 
-    camBtn.textContent = '📷 Cámara lista';
-    camBtn.disabled = true;
-
-    console.log('Cámara activa');
-  } catch (err) {
-    alert('Permisos de cámara o micrófono denegados');
-    console.error(err);
-  }
+  document.getElementById('startReaction').disabled = false;
 });
+
 /* =========================
    INICIAR REACCIÓN
 ========================= */
@@ -113,7 +104,7 @@ document.getElementById('startReaction').addEventListener('click', () => {
   mediaRecorder.start();
   playerA.playVideo();
 
-  camBtn.textContent = '🔴 Grabando';
+  document.getElementById('recordStatus').textContent = '🔴 Grabando';
 });
 
 /* =========================
@@ -160,16 +151,3 @@ function saveRecording() {
     a.click();
   };
 }
-const reactionBtn = document.getElementById('startReaction');
-
-reactionBtn.addEventListener('click', () => {
-  if (!reactionStartTime) {
-    reactionStartTime = Date.now();
-    syncEvents = [];
-    reactionBtn.textContent = '⏹ Finalizar reacción';
-    console.log('Reacción iniciada');
-  } else {
-    endReaction();
-  }
-});
-
