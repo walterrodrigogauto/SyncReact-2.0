@@ -72,24 +72,37 @@ document.getElementById('loadVideo').addEventListener('click', () => {
 /* =========================
    ACTIVAR CÁMARA (NO GRABA)
 ========================= */
-document.getElementById('startCam').addEventListener('click', async () => {
-  camStream = await navigator.mediaDevices.getUserMedia({
-    video: true,
-    audio: true
-  });
+const camBtn = document.getElementById('startCam');
+const camVideo = document.getElementById('playerB');
 
-  const camVideo = document.getElementById('playerB');
-  camVideo.srcObject = camStream;
-  camVideo.play();
+camBtn.addEventListener('click', async () => {
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true
+    });
 
-  document.getElementById('recordStatus').textContent = '📷 Cámara lista';
+    camVideo.srcObject = camStream;
+    camVideo.play();
 
-  mediaRecorder = new MediaRecorder(camStream);
-  mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
-  mediaRecorder.onstop = saveRecording;
+    camBtn.textContent = '📷 Cámara lista';
+    camBtn.disabled = true;
 
-  document.getElementById('startReaction').disabled = false;
+    document.getElementById('recordStatus').textContent = '📷 Cámara lista';
+
+    mediaRecorder = new MediaRecorder(camStream);
+    mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
+    mediaRecorder.onstop = saveRecording;
+
+    document.getElementById('startReaction').disabled = false;
+
+    console.log('Cámara activa');
+  } catch (err) {
+    alert('Permisos de cámara o micrófono denegados');
+    console.error(err);
+  }
 });
+
 
 /* =========================
    INICIAR REACCIÓN
@@ -174,4 +187,5 @@ function saveRecording() {
     a.click();
   };
 }
+
 
