@@ -94,18 +94,41 @@ document.getElementById('startCam').addEventListener('click', async () => {
 /* =========================
    INICIAR REACCIÓN
 ========================= */
-document.getElementById('startReaction').addEventListener('click', () => {
+const reactionBtn = document.getElementById('startReaction');
+
+reactionBtn.addEventListener('click', () => {
   if (!playerA || !mediaRecorder) return;
 
-  reactionStartTime = Date.now();
-  syncEvents = [];
-  recordedChunks = [];
+  // ▶️ INICIAR
+  if (!reactionStartTime) {
+    reactionStartTime = Date.now();
+    syncEvents = [];
+    recordedChunks = [];
 
-  mediaRecorder.start();
-  playerA.playVideo();
+    mediaRecorder.start();
+    playerA.playVideo();
 
-  document.getElementById('recordStatus').textContent = '🔴 Grabando';
+    reactionBtn.textContent = '⏹ Finalizar reacción';
+    document.getElementById('recordStatus').textContent = '🔴 Grabando';
+    console.log('Reacción iniciada');
+  }
+  // ⏹ FINALIZAR
+  else {
+    reactionStartTime = null;
+
+    if (mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+    }
+
+    reactionBtn.textContent = '▶️ Iniciar reacción';
+    document.getElementById('recordStatus').textContent =
+      '✅ Grabación finalizada';
+    document.getElementById('downloadReaction').disabled = false;
+
+    console.table(syncEvents);
+  }
 });
+
 
 /* =========================
    ESTADOS DE YOUTUBE
@@ -151,3 +174,4 @@ function saveRecording() {
     a.click();
   };
 }
+
