@@ -88,15 +88,13 @@ camBtn.addEventListener('click', async () => {
     camBtn.textContent = '📷 Cámara lista';
     camBtn.disabled = true;
 
-    document.getElementById('recordStatus').textContent = '📷 Cámara lista';
-
     mediaRecorder = new MediaRecorder(camStream);
     mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
     mediaRecorder.onstop = saveRecording;
 
     document.getElementById('startReaction').disabled = false;
 
-    console.log('Cámara activa');
+    console.log('Cámara lista');
   } catch (err) {
     alert('Permisos de cámara o micrófono denegados');
     console.error(err);
@@ -110,10 +108,8 @@ camBtn.addEventListener('click', async () => {
 const reactionBtn = document.getElementById('startReaction');
 
 reactionBtn.addEventListener('click', () => {
-  if (!playerA || !mediaRecorder) return;
-
-  // ▶️ INICIAR
   if (!reactionStartTime) {
+    // ▶️ INICIAR
     reactionStartTime = Date.now();
     syncEvents = [];
     recordedChunks = [];
@@ -121,24 +117,26 @@ reactionBtn.addEventListener('click', () => {
     mediaRecorder.start();
     playerA.playVideo();
 
-    reactionBtn.textContent = '⏹ Finalizar reacción';
-    document.getElementById('recordStatus').textContent = '🔴 Grabando';
-    console.log('Reacción iniciada');
-  }
-  // ⏹ FINALIZAR
-  else {
-    reactionStartTime = null;
+    camBtn.textContent = '🔴 Grabando';
+    camBtn.classList.add('recording');
 
-    if (mediaRecorder.state === 'recording') {
-      mediaRecorder.stop();
-    }
+    reactionBtn.textContent = '⏹ Finalizar reacción';
+
+    console.log('Reacción iniciada');
+  } else {
+    // ⏹ FINALIZAR
+    mediaRecorder.stop();
+    playerA.pauseVideo();
+
+    camBtn.textContent = '📷 Cámara lista';
+    camBtn.classList.remove('recording');
 
     reactionBtn.textContent = '▶️ Iniciar reacción';
-    document.getElementById('recordStatus').textContent =
-      '✅ Grabación finalizada';
+    reactionBtn.disabled = true;
+
     document.getElementById('downloadReaction').disabled = false;
 
-    console.table(syncEvents);
+    console.log('Reacción finalizada');
   }
 });
 
@@ -187,5 +185,6 @@ function saveRecording() {
     a.click();
   };
 }
+
 
 
