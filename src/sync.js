@@ -162,8 +162,6 @@ function onPlayerStateChange(event) {
       mediaRecorder.stop();
     }
 
-    document.getElementById('recordStatus').textContent =
-      '✅ Grabación finalizada';
     document.getElementById('downloadReaction').disabled = false;
 
     console.table(syncEvents);
@@ -185,6 +183,7 @@ function saveRecording() {
     a.click();
   };
 }
+
 
 
 
