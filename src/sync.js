@@ -5,6 +5,8 @@ let camStream = null;
 let mediaRecorder = null;
 let recordedChunks = [];
 let lastVideoTime = 0;
+let lastPausedTime = null;
+let lastTick = Date.now();
 /* =========================
    EVENTOS DE SINCRONIZACIÓN
 ========================= */
@@ -181,14 +183,21 @@ function onPlayerStateChange(event) {
   if (!reactionStartTime) return;
 
   const currentTime = playerA.getCurrentTime();
+  const now = Date.now();
+
+  const expectedAdvance = (now - lastTick) / 1000;
+  const realAdvance = currentTime - lastVideoTime;
+
+  // 🔍 SEEK DETECTION
+  if (
+    Math.abs(realAdvance - expectedAdvance) > 1.2 &&
+    Math.abs(realAdvance) > 1.5
+  ) {
+    logSyncEvent('seek');
+  }
 
   // ▶️ PLAY
   if (event.data === YT.PlayerState.PLAYING) {
-    // Detectar SEEK (salto mayor a 1.5s)
-    if (Math.abs(currentTime - lastVideoTime) > 1.5) {
-      logSyncEvent('seek');
-    }
-
     logSyncEvent('play');
   }
 
@@ -203,8 +212,8 @@ function onPlayerStateChange(event) {
   }
 
   lastVideoTime = currentTime;
+  lastTick = now;
 }
-
 /* =========================
    GUARDAR VIDEO (MANUAL)
 ========================= */
@@ -220,6 +229,7 @@ function saveRecording() {
     a.click();
   };
 }
+
 
 
 
