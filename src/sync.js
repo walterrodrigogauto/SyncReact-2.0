@@ -4,7 +4,7 @@ let playerReady = false;
 let camStream = null;
 let mediaRecorder = null;
 let recordedChunks = [];
-
+let lastVideoTime = 0;
 /* =========================
    EVENTOS DE SINCRONIZACIÓN
 ========================= */
@@ -22,6 +22,38 @@ function logEvent(type) {
 
   syncEvents.push(event);
   console.log('Evento:', event);
+}
+function logSyncEvent(type) {
+  if (!reactionStartTime || !playerA) return;
+
+  const currentTime = playerA.getCurrentTime();
+
+  const event = {
+    type,
+    videoTime: Number(currentTime.toFixed(3)),
+    reactionTime: Date.now() - reactionStartTime
+  };
+
+  syncEvents.push(event);
+  console.log('SYNC EVENT:', event);
+
+  lastVideoTime = currentTime;
+}
+function logSyncEvent(type) {
+  if (!reactionStartTime || !playerA) return;
+
+  const currentTime = playerA.getCurrentTime();
+
+  const event = {
+    type,
+    videoTime: Number(currentTime.toFixed(3)),
+    reactionTime: Date.now() - reactionStartTime
+  };
+
+  syncEvents.push(event);
+  console.log('SYNC EVENT:', event);
+
+  lastVideoTime = currentTime;
 }
 
 /* =========================
@@ -112,6 +144,7 @@ reactionBtn.addEventListener('click', () => {
     // ▶️ INICIAR
     reactionStartTime = Date.now();
     syncEvents = [];
+    lastVideoTime = 0;
     recordedChunks = [];
 
     mediaRecorder.start();
@@ -147,25 +180,29 @@ reactionBtn.addEventListener('click', () => {
 function onPlayerStateChange(event) {
   if (!reactionStartTime) return;
 
+  const currentTime = playerA.getCurrentTime();
+
+  // ▶️ PLAY
   if (event.data === YT.PlayerState.PLAYING) {
-    logEvent('play');
-  }
-
-  if (event.data === YT.PlayerState.PAUSED) {
-    logEvent('pause');
-  }
-
-  if (event.data === YT.PlayerState.ENDED) {
-    logEvent('ended');
-
-    if (mediaRecorder?.state === 'recording') {
-      mediaRecorder.stop();
+    // Detectar SEEK (salto mayor a 1.5s)
+    if (Math.abs(currentTime - lastVideoTime) > 1.5) {
+      logSyncEvent('seek');
     }
 
-    document.getElementById('downloadReaction').disabled = false;
-
-    console.table(syncEvents);
+    logSyncEvent('play');
   }
+
+  // ⏸ PAUSE
+  if (event.data === YT.PlayerState.PAUSED) {
+    logSyncEvent('pause');
+  }
+
+  // ⏹ END
+  if (event.data === YT.PlayerState.ENDED) {
+    logSyncEvent('ended');
+  }
+
+  lastVideoTime = currentTime;
 }
 
 /* =========================
@@ -183,6 +220,7 @@ function saveRecording() {
     a.click();
   };
 }
+
 
 
 
