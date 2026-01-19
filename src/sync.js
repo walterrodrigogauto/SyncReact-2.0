@@ -234,6 +234,33 @@ function saveRecording() {
     a.click();
   };
 }
+/* =========================
+   EXPORTAR JSON
+========================= */
+function exportSyncJSON() {
+  const data = {
+    videoId: playerA.getVideoData().video_id,
+    createdAt: new Date().toISOString(),
+    events: syncEvents
+  };
+
+  const blob = new Blob(
+    [JSON.stringify(data, null, 2)],
+    { type: 'application/json' }
+  );
+
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'sync-events.json';
+  a.click();
+
+  URL.revokeObjectURL(url);
+
+  console.log('JSON exportado:', data);
+}
+
 
 
 
