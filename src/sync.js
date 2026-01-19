@@ -159,20 +159,25 @@ reactionBtn.addEventListener('click', () => {
 
     console.log('Reacción iniciada');
   } else {
-    // ⏹ FINALIZAR
+  // ⏹ FINALIZAR REACCIÓN
+  playerA.pauseVideo();
+
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
     mediaRecorder.stop();
-    playerA.pauseVideo();
-
-    camBtn.textContent = '📷 Cámara lista';
-    camBtn.classList.remove('recording');
-
-    reactionBtn.textContent = '▶️ Iniciar reacción';
-    reactionBtn.disabled = true;
-
-    document.getElementById('downloadReaction').disabled = false;
-
-    console.log('Reacción finalizada');
   }
+
+  exportSyncJSON(); // 📦 Exporta eventos de sincronización
+
+  camBtn.textContent = '📷 Cámara lista';
+  camBtn.classList.remove('recording');
+
+  reactionBtn.textContent = '▶️ Iniciar reacción';
+  reactionStartTime = null;
+
+  document.getElementById('downloadReaction').disabled = false;
+
+  console.log('Reacción finalizada');
+}    
 });
 
 
@@ -229,6 +234,7 @@ function saveRecording() {
     a.click();
   };
 }
+
 
 
 
