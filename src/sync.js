@@ -1,61 +1,40 @@
+/* =========================
+   ESTADO GLOBAL
+========================= */
 let playerA = null;
 let playerReady = false;
 
 let camStream = null;
 let mediaRecorder = null;
 let recordedChunks = [];
-let lastVideoTime = 0;
-let lastPausedTime = null;
-let lastTick = Date.now();
-/* =========================
-   EVENTOS DE SINCRONIZACIÓN
-========================= */
-let syncEvents = [];
-let reactionStartTime = null;
 
-function logEvent(type) {
-  if (!playerA || !reactionStartTime) return;
+let reactionStartTime = null;
+let syncEvents = [];
+
+let lastVideoTime = 0;
+let lastTickTime = null;
+
+let seekDebounceTimer = null;
+const SEEK_DEBOUNCE_MS = 600;
+
+/* =========================
+   UTILIDADES
+========================= */
+function nowReactionTime() {
+  return Date.now() - reactionStartTime;
+}
+
+function logSyncEvent(type) {
+  if (!reactionStartTime || !playerA) return;
 
   const event = {
     type,
-    videoTime: playerA.getCurrentTime(),
-    reactionTime: Date.now() - reactionStartTime
+    videoTime: Number(playerA.getCurrentTime().toFixed(3)),
+    reactionTime: nowReactionTime()
   };
 
   syncEvents.push(event);
   console.log('Evento:', event);
-}
-function logSyncEvent(type) {
-  if (!reactionStartTime || !playerA) return;
-
-  const currentTime = playerA.getCurrentTime();
-
-  const event = {
-    type,
-    videoTime: Number(currentTime.toFixed(3)),
-    reactionTime: Date.now() - reactionStartTime
-  };
-
-  syncEvents.push(event);
-  console.log('SYNC EVENT:', event);
-
-  lastVideoTime = currentTime;
-}
-function logSyncEvent(type) {
-  if (!reactionStartTime || !playerA) return;
-
-  const currentTime = playerA.getCurrentTime();
-
-  const event = {
-    type,
-    videoTime: Number(currentTime.toFixed(3)),
-    reactionTime: Date.now() - reactionStartTime
-  };
-
-  syncEvents.push(event);
-  console.log('SYNC EVENT:', event);
-
-  lastVideoTime = currentTime;
 }
 
 /* =========================
@@ -80,7 +59,7 @@ window.onYouTubeIframeAPIReady = function () {
 };
 
 /* =========================
-   EXTRAER ID DE YOUTUBE
+   EXTRAER ID YOUTUBE
 ========================= */
 function extractVideoId(url) {
   const match = url.match(
@@ -90,64 +69,58 @@ function extractVideoId(url) {
 }
 
 /* =========================
-   CARGAR VIDEO (NO AUTOPLAY)
+   CARGAR VIDEO (NO autoplay)
 ========================= */
 document.getElementById('loadVideo').addEventListener('click', () => {
   if (!playerReady) return alert('YouTube no listo');
 
   const url = document.getElementById('videoA').value;
   const id = extractVideoId(url);
-
   if (!id) return alert('URL inválida');
 
   playerA.cueVideoById(id);
 });
 
 /* =========================
-   ACTIVAR CÁMARA (NO GRABA)
+   ACTIVAR CÁMARA (NO graba)
 ========================= */
 const camBtn = document.getElementById('startCam');
 const camVideo = document.getElementById('playerB');
+const reactionBtn = document.getElementById('startReaction');
+const downloadBtn = document.getElementById('downloadReaction');
 
 camBtn.addEventListener('click', async () => {
-  try {
-    camStream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: true
-    });
+  camStream = await navigator.mediaDevices.getUserMedia({
+    video: true,
+    audio: true
+  });
 
-    camVideo.srcObject = camStream;
-    camVideo.play();
+  camVideo.srcObject = camStream;
+  camVideo.play();
 
-    camBtn.textContent = '📷 Cámara lista';
-    camBtn.disabled = true;
+  camBtn.textContent = '📷 Cámara lista';
+  camBtn.disabled = true;
 
-    mediaRecorder = new MediaRecorder(camStream);
-    mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
-    mediaRecorder.onstop = saveRecording;
+  mediaRecorder = new MediaRecorder(camStream);
+  mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
+  mediaRecorder.onstop = () => {
+    downloadBtn.disabled = false;
+  };
 
-    document.getElementById('startReaction').disabled = false;
-
-    console.log('Cámara lista');
-  } catch (err) {
-    alert('Permisos de cámara o micrófono denegados');
-    console.error(err);
-  }
+  reactionBtn.disabled = false;
 });
 
-
 /* =========================
-   INICIAR REACCIÓN
+   INICIAR / FINALIZAR REACCIÓN
 ========================= */
-const reactionBtn = document.getElementById('startReaction');
-
 reactionBtn.addEventListener('click', () => {
+  // ▶️ INICIAR
   if (!reactionStartTime) {
-    // ▶️ INICIAR
     reactionStartTime = Date.now();
     syncEvents = [];
-    lastVideoTime = 0;
     recordedChunks = [];
+    lastVideoTime = 0;
+    lastTickTime = Date.now();
 
     mediaRecorder.start();
     playerA.playVideo();
@@ -158,31 +131,42 @@ reactionBtn.addEventListener('click', () => {
     reactionBtn.textContent = '⏹ Finalizar reacción';
 
     console.log('Reacción iniciada');
-  } else {
-  // ⏹ FINALIZAR REACCIÓN
-  playerA.pauseVideo();
+    return;
+  }
 
-  if (mediaRecorder && mediaRecorder.state === 'recording') {
+  // ⏹ FINALIZAR
+  endReaction();
+});
+
+/* =========================
+   FINALIZAR REACCIÓN
+========================= */
+function endReaction() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     mediaRecorder.stop();
   }
 
-  exportSyncJSON(); // 📦 Exporta eventos de sincronización
+  playerA.pauseVideo();
 
   camBtn.textContent = '📷 Cámara lista';
   camBtn.classList.remove('recording');
 
   reactionBtn.textContent = '▶️ Iniciar reacción';
-  reactionStartTime = null;
+  reactionBtn.disabled = true;
 
-  document.getElementById('downloadReaction').disabled = false;
+  exportSyncJSON();
+
+  // LIMPIEZA
+  reactionStartTime = null;
+  lastVideoTime = 0;
+  lastTickTime = null;
+  clearTimeout(seekDebounceTimer);
 
   console.log('Reacción finalizada');
-}    
-});
-
+}
 
 /* =========================
-   ESTADOS DE YOUTUBE
+   YOUTUBE STATE + SEEK
 ========================= */
 function onPlayerStateChange(event) {
   if (!reactionStartTime) return;
@@ -190,81 +174,61 @@ function onPlayerStateChange(event) {
   const currentTime = playerA.getCurrentTime();
   const now = Date.now();
 
-  const expectedAdvance = (now - lastTick) / 1000;
-  const realAdvance = currentTime - lastVideoTime;
+  if (lastTickTime !== null) {
+    const realAdvance = currentTime - lastVideoTime;
+    const expectedAdvance = (now - lastTickTime) / 1000;
 
-  // 🔍 SEEK DETECTION
-  if (
-    Math.abs(realAdvance - expectedAdvance) > 1.2 &&
-    Math.abs(realAdvance) > 1.5
-  ) {
-    logSyncEvent('seek');
+    // 🔍 SEEK DETECTION (con debounce)
+    if (
+      Math.abs(realAdvance - expectedAdvance) > 1.2 &&
+      Math.abs(realAdvance) > 1.5
+    ) {
+      clearTimeout(seekDebounceTimer);
+      seekDebounceTimer = setTimeout(() => {
+        logSyncEvent('seek');
+      }, SEEK_DEBOUNCE_MS);
+    }
   }
 
-  // ▶️ PLAY
+  lastVideoTime = currentTime;
+  lastTickTime = now;
+
   if (event.data === YT.PlayerState.PLAYING) {
     logSyncEvent('play');
   }
 
-  // ⏸ PAUSE
   if (event.data === YT.PlayerState.PAUSED) {
     logSyncEvent('pause');
   }
 
-  // ⏹ END
   if (event.data === YT.PlayerState.ENDED) {
     logSyncEvent('ended');
+    endReaction();
   }
-
-  lastVideoTime = currentTime;
-  lastTick = now;
 }
-/* =========================
-   GUARDAR VIDEO (MANUAL)
-========================= */
-function saveRecording() {
-  const blob = new Blob(recordedChunks, { type: 'video/webm' });
-  const url = URL.createObjectURL(blob);
 
-  const btn = document.getElementById('downloadReaction');
-  btn.onclick = () => {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'reaction.webm';
-    a.click();
-  };
-}
 /* =========================
-   EXPORTAR JSON
+   EXPORTAR JSON DE SINCRONÍA
 ========================= */
 function exportSyncJSON() {
   const data = {
-    videoId: playerA.getVideoData().video_id,
+    version: '1.0',
     createdAt: new Date().toISOString(),
     events: syncEvents
   };
 
-  const blob = new Blob(
-    [JSON.stringify(data, null, 2)],
-    { type: 'application/json' }
-  );
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: 'application/json'
+  });
 
   const url = URL.createObjectURL(blob);
 
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'sync-events.json';
-  a.click();
+  downloadBtn.onclick = () => {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'syncreact-sync.json';
+    a.click();
+  };
 
-  URL.revokeObjectURL(url);
-
-  console.log('JSON exportado:', data);
+  console.log('JSON listo para exportar', data);
 }
-
-
-
-
-
-
-
-
