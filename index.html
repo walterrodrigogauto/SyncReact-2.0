@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>SyncReact</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="app-container">
+  <header class="brand-header">
+    <div class="logo-icon"></div>
+    <h1>Sync<span>React</span></h1>
+  </header>
+
+  <section class="search-section">
+    <div class="search-bar">
+      <span class="yt-icon"></span>
+      <input type="text" id="videoA" placeholder="Pega el URL del video original de YouTube aquí...">
+      <button id="loadVideo" class="btn-load">Cargar Video</button>
+    </div>
+  </section>
+
+  <section class="video-grid">
+    <div class="video-card active-card">
+      <h3>Video de YouTube</h3>
+      <div class="video-display" id="playerA">
+        <div class="badge-status">Cargado</div>
+      </div>
+    </div>
+
+    <div class="video-card">
+      <h3>Tu Cámara</h3>
+      <div class="video-display camera-placeholder">
+        <div class="camera-ui">
+          <span class="icon-cam"></span>
+          <p>Cámara Inactiva - Esperando...</p>
+          <button id="startCam" class="btn-cam">Activar Camara</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sync-panel">
+    <h4>Sync Controls</h4>
+    <div class="controls-row">
+      <div class="control-group">
+        <button class="icon-btn"></button>
+        <button class="icon-btn"></button>
+        <button class="icon-btn pla"></button>
+        <button class="icon-btn"></button>
+      </div>
+      <div class="control-group">
+        <button class="btn-sync"> Sync Video</button>
+        <div class="time-display">00:28:37</div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="ads-footer">
+    Ads placeholder
+  </footer>
+</div>
+</body>
