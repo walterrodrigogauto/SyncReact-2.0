@@ -57,6 +57,16 @@
     </div>
   </section>
     <script src="https://www.youtube.com/iframe_api"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+const SUPABASE_URL = 'https://xgqqrpuhetrndihmixwh.supabase.co/rest/v1/';
+const SUPABASE_KEY = 'TU_ANON_KEY_AQUI';
+
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+</script>
   <script src="src/sync.js"></script>
 
   <footer class="ads-footer">
