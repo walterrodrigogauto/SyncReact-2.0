@@ -171,7 +171,8 @@ function endReaction() {
 
   reactionBtn.textContent = '▶️ Iniciar reacción';
   reactionBtn.disabled = true;
-
+const videoId = playerA.getVideoData().video_id;
+saveReactionToDB(videoId, syncEvents);
   exportSyncJSON();
 
   // LIMPIEZA
