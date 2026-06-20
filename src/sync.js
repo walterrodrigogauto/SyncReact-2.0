@@ -225,7 +225,8 @@ function onPlayerStateChange(event) {
     endReaction();
   }
 }
-
+const videoId = playerA.getVideoData().video_id;
+saveReactionToDB(videoId, syncEvents);
 /* =========================
    EXPORTAR JSON DE SINCRONÍA
 ========================= */
