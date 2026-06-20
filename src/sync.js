@@ -251,3 +251,22 @@ function exportSyncJSON() {
 
   console.log('JSON listo para exportar', data);
 }
+async function saveReactionToDB(videoId, events) {
+  const { data, error } = await supabase
+    .from('reactions')
+    .insert([
+      {
+        youtube_video_id: videoId,
+        sync_events: events
+      }
+    ])
+    .select();
+
+  if (error) {
+    console.error('Error guardando en DB:', error);
+    return null;
+  }
+
+  console.log('Guardado en DB:', data);
+  return data[0];
+}
