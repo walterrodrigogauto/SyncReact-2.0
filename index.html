@@ -47,14 +47,17 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
 const SUPABASE_URL = 'https://xgqqrpuhetrndihmixwh.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_ZwiIC7oOsFUvpXiY48yE3A_uiLuegwg'
+const SUPABASE_KEY = 'sb_publishable_...';
+
 const supabase = window.supabase.createClient(
   SUPABASE_URL,
-  SUPABASE_KEY);
+  SUPABASE_KEY
+);
+
 console.log(window.supabase);
 console.log(supabase);
-    console.log(typeof supabase.from);
-    </script>
+console.log(typeof supabase.from);
+</script>
   <script src="src/sync.js"></script>
 </body>
 </html>
