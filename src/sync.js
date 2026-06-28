@@ -1,252 +1,137 @@
-/* =========================
-   ESTADO GLOBAL
-========================= */
-let playerA = null;
-let playerReady = false;
+/* ==========================================
+   SyncReact 2.1
+   sync.js
+========================================== */
 
-let camStream = null;
-let mediaRecorder = null;
-let recordedChunks = [];
+import {
+    playVideo,
+    pauseVideo,
+    getCurrentTime,
+    getVideoId
+} from "./youtube.js";
+
+import {
+    startRecording,
+    stopRecording,
+    prepareDownload,
+    getReactionBlob
+} from "./camera.js";
+
+import {
+    saveReaction
+} from "./supabase.js";
+
+/* ==========================================
+   ESTADO GLOBAL
+========================================== */
+
+let reactionRunning = false;
 
 let reactionStartTime = null;
+
 let syncEvents = [];
 
 let lastVideoTime = 0;
-let lastTickTime = null;
+let lastClockTime = 0;
 
-let seekDebounceTimer = null;
-const SEEK_DEBOUNCE_MS = 600;
+let seekTimer = null;
 
-/* =========================
-   UTILIDADES
-========================= */
-function nowReactionTime() {
-  return Date.now() - reactionStartTime;
+const SEEK_DEBOUNCE = 600;
+
+/* ==========================================
+   ELEMENTOS UI
+========================================== */
+
+const reactionBtn =
+    document.getElementById("startReaction");
+
+const downloadBtn =
+    document.getElementById("downloadReaction");
+
+/* ==========================================
+   INICIALIZACIÓN
+========================================== */
+
+export function initSync() {
+
+    reactionBtn.addEventListener(
+        "click",
+        toggleReaction
+    );
+
+    document.addEventListener(
+        "youtubeState",
+        handleYoutubeState
+    );
+
+    document.addEventListener(
+        "recordingFinished",
+        handleRecordingFinished
+    );
+
 }
-  function logSyncEvent(type) {
-  if (!reactionStartTime || !playerA) return;
 
-  const event = {
-    type,
-    videoTime: Number(playerA.getCurrentTime().toFixed(3)),
-    reactionTime: nowReactionTime()
-  };
+/* ==========================================
+   INICIAR / FINALIZAR
+========================================== */
 
-  syncEvents.push(event);
-  console.log('Evento:', event);
-}
+function toggleReaction() {
 
-/* =========================
-   YOUTUBE API
-========================= */
-window.onYouTubeIframeAPIReady = function () {
-  playerA = new YT.Player('playerA', {
-    height: '315',
-    width: '560',
-    playerVars: {
-      controls: 1,
-      rel: 0
-    },
-    events: {
-      onReady: () => {
-        playerReady = true;
-        console.log('YouTube READY');
-      },
-      onStateChange: onPlayerStateChange
+    if (!reactionRunning) {
+
+        startReaction();
+
+    } else {
+
+        endReaction();
+
     }
-  });
-};
 
-/* =========================
-   EXTRAER ID YOUTUBE
-========================= */
-function extractVideoId(url) {
-  const match = url.match(
-    /(?:youtube\.com\/.*v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/
-  );
-  return match ? match[1] : null;
 }
 
-/* =========================
-   CARGAR VIDEO (NO autoplay)
-========================= */
-document.getElementById('loadVideo').addEventListener('click', () => {
-  if (!playerReady) return alert('YouTube no listo');
+/* ==========================================
+   INICIAR REACCIÓN
+========================================== */
 
-  const url = document.getElementById('videoA').value;
-  const id = extractVideoId(url);
-  if (!id) return alert('URL inválida');
+function startReaction() {
 
-  playerA.cueVideoById(id);
-});
+    console.log("▶️ Reacción iniciada");
 
-/* =========================
-   ACTIVAR CÁMARA (NO graba)
-========================= */
-const camBtn = document.getElementById('startCam');
-const camVideo = document.getElementById('playerB');
-const reactionBtn = document.getElementById('startReaction');
-const downloadBtn = document.getElementById('downloadReaction');
+    reactionRunning = true;
 
-camBtn.addEventListener('click', async () => {
-  camStream = await navigator.mediaDevices.getUserMedia({
-    video: true,
-    audio: true
-  });
-
-  camVideo.srcObject = camStream;
-  camVideo.play();
-
-  camBtn.textContent = '📷 Cámara lista';
-  camBtn.disabled = true;
-
-  mediaRecorder = new MediaRecorder(camStream);
-  mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
-  mediaRecorder.onstop = () => {
-    downloadBtn.disabled = false;
-  };
-
-  reactionBtn.disabled = false;
-});
-
-/* =========================
-   INICIAR / FINALIZAR REACCIÓN
-========================= */
-reactionBtn.addEventListener('click', () => {
-  // ▶️ INICIAR
-  if (!reactionStartTime) {
     reactionStartTime = Date.now();
+
     syncEvents = [];
-    recordedChunks = [];
+
     lastVideoTime = 0;
-    lastTickTime = Date.now();
+    lastClockTime = Date.now();
 
-    mediaRecorder.start();
-    playerA.playVideo();
+    reactionBtn.textContent =
+        "⏹ Finalizar reacción";
 
-    camBtn.textContent = '🔴 Grabando';
-    camBtn.classList.add('recording');
+    downloadBtn.disabled = true;
 
-    reactionBtn.textContent = '⏹ Finalizar reacción';
+    startRecording();
 
-    console.log('Reacción iniciada');
-    return;
-  }
+    playVideo();
 
-  // ⏹ FINALIZAR
-  endReaction();
-});
+}
 
-/* =========================
+/* ==========================================
    FINALIZAR REACCIÓN
-========================= */
-function endReaction() {
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    mediaRecorder.stop();
-  }
+========================================== */
 
-  playerA.pauseVideo();
+async function endReaction() {
 
-  camBtn.textContent = '📷 Cámara lista';
-  camBtn.classList.remove('recording');
+    console.log("⏹ Finalizando reacción");
 
-  reactionBtn.textContent = '▶️ Iniciar reacción';
-  reactionBtn.disabled = true;
-  exportSyncJSON();
+    reactionRunning = false;
 
-  // LIMPIEZA
-  reactionStartTime = null;
-  lastVideoTime = 0;
-  lastTickTime = null;
-  clearTimeout(seekDebounceTimer);
+    pauseVideo();
 
-  console.log('Reacción finalizada');
-}
+    stopRecording();
 
-/* =========================
-   YOUTUBE STATE + SEEK
-========================= */
-function onPlayerStateChange(event) {
-  if (!reactionStartTime) return;
+    reactionBtn.textContent =
+        "▶️ Iniciar reacción";
 
-  const currentTime = playerA.getCurrentTime();
-  const now = Date.now();
-
-  if (lastTickTime !== null) {
-    const realAdvance = currentTime - lastVideoTime;
-    const expectedAdvance = (now - lastTickTime) / 1000;
-
-    // 🔍 SEEK DETECTION (con debounce)
-    if (
-      Math.abs(realAdvance - expectedAdvance) > 1.2 &&
-      Math.abs(realAdvance) > 1.5
-    ) {
-      clearTimeout(seekDebounceTimer);
-      seekDebounceTimer = setTimeout(() => {
-        logSyncEvent('seek');
-      }, SEEK_DEBOUNCE_MS);
-    }
-  }
-
-  lastVideoTime = currentTime;
-  lastTickTime = now;
-
-  if (event.data === YT.PlayerState.PLAYING) {
-    logSyncEvent('play');
-  }
-
-  if (event.data === YT.PlayerState.PAUSED) {
-    logSyncEvent('pause');
-  }
-
-  if (event.data === YT.PlayerState.ENDED) {
-    logSyncEvent('ended');
-    endReaction();
-  }
-}
-const videoId = playerA.getVideoData().video_id;
-saveReactionToDB(videoId, syncEvents);
-/* =========================
-   EXPORTAR JSON DE SINCRONÍA
-========================= */
-function exportSyncJSON() {
-  const data = {
-    version: '1.0',
-    createdAt: new Date().toISOString(),
-    events: syncEvents
-  };
-
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
-    type: 'application/json'
-  });
-
-  const url = URL.createObjectURL(blob);
-
-  downloadBtn.onclick = () => {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'syncreact-sync.json';
-    a.click();
-  };
-
-  console.log('JSON listo para exportar', data);
-}
-async function saveReactionToDB(videoId, events) {
-  const { data, error } = await supabase
-    .from('reactions')
-    .insert([
-      {
-        youtube_video_id: videoId,
-        sync_events: events
-      }
-    ])
-    .select();
-
-  if (error) {
-    console.error('Error guardando en DB:', error);
-    return null;
-  }
-
-  console.log('Guardado en DB:', data);
-  return data[0];
 }
