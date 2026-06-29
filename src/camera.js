@@ -98,8 +98,7 @@ export function startRecording() {
 
     recorder.start();
 
-    camBtn.textContent = "🔴 Grabando";
-    camBtn.classList.add("recording");
+    setCameraRecording();
 
     console.log("🔴 Grabando");
 
@@ -117,8 +116,7 @@ export function stopRecording() {
     if (recorder.state === "recording")
         recorder.stop();
 
-    camBtn.textContent = "📷 Cámara lista";
-    camBtn.classList.remove("recording");
+    setCameraReady();
 
 }
 
