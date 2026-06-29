@@ -329,3 +329,53 @@ async function uploadReaction() {
     }
 
 }
+/* ==========================================
+   LIMPIEZA
+========================================== */
+
+function resetSyncState() {
+
+    reactionRunning = false;
+
+    reactionStartTime = null;
+
+    syncEvents = [];
+
+    lastVideoTime = 0;
+
+    lastClockTime = 0;
+
+    clearTimeout(seekTimer);
+
+    seekTimer = null;
+
+    reactionBtn.textContent =
+        "▶️ Iniciar reacción";
+
+    reactionBtn.disabled = false;
+
+    console.log("🧹 Estado reiniciado");
+
+}
+
+/* ==========================================
+   UTILIDADES
+========================================== */
+
+export function getSyncEvents() {
+
+    return syncEvents;
+
+}
+
+export function isReactionRunning() {
+
+    return reactionRunning;
+
+}
+
+export function getReactionStartTime() {
+
+    return reactionStartTime;
+
+}
