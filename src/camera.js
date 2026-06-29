@@ -134,7 +134,7 @@ export function prepareDownload() {
 
     const url = URL.createObjectURL(blob);
 
-    downloadBtn.disabled = false;
+    showDownload();
 
     downloadBtn.onclick = () => {
 
