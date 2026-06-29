@@ -250,6 +250,8 @@ async function handleRecordingFinished() {
 
     await uploadReaction();
 
+    resetSyncState();
+
 }
 
 /* ==========================================
