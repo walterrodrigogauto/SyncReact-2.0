@@ -2,7 +2,12 @@
    SyncReact 2.1
    camera.js
 ========================================== */
-
+import {
+    setCameraReady,
+    setCameraRecording,
+    setCameraInactive,
+    showDownload
+} from "./ui.js";
 let stream = null;
 let recorder = null;
 let chunks = [];
@@ -58,8 +63,7 @@ async function activateCamera() {
 
         };
 
-        camBtn.textContent = "📷 Cámara lista";
-        camBtn.disabled = true;
+        setCameraReady();
 
         console.log("📷 Cámara activada");
 
